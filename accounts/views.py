@@ -16,7 +16,7 @@ class RegisterAPIView(APIView):
         if serializer.is_valid():
             user = serializer.save()
 
-            # ASYNC EMAIL
+            # ASYNC EMAIL (NON-BLOCKING)
             send_account_email.delay(
                 user.email,
                 "Registration Successful",
@@ -24,6 +24,7 @@ class RegisterAPIView(APIView):
             )
 
             refresh = RefreshToken.for_user(user)
+
             return Response(
                 {
                     "message": "User registered successfully",
@@ -31,7 +32,7 @@ class RegisterAPIView(APIView):
                     "access": str(refresh.access_token),
                     "refresh": str(refresh),
                 },
-                status=status.HTTP_201_CREATED
+                status=status.HTTP_201_CREATED,
             )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -45,6 +46,7 @@ class LoginAPIView(APIView):
         if serializer.is_valid():
             user = serializer.validated_data["user"]
 
+            # ASYNC EMAIL
             send_account_email.delay(
                 user.email,
                 "Login Successful",
@@ -52,6 +54,7 @@ class LoginAPIView(APIView):
             )
 
             refresh = RefreshToken.for_user(user)
+
             return Response(
                 {
                     "message": "Login successful",
@@ -59,7 +62,7 @@ class LoginAPIView(APIView):
                     "access": str(refresh.access_token),
                     "refresh": str(refresh),
                 },
-                status=status.HTTP_200_OK
+                status=status.HTTP_200_OK,
             )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -69,6 +72,7 @@ class LogoutAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        # ASYNC EMAIL
         send_account_email.delay(
             request.user.email,
             "Logout Successful",
@@ -77,5 +81,5 @@ class LogoutAPIView(APIView):
 
         return Response(
             {"message": "Logged out successfully"},
-            status=status.HTTP_200_OK
+            status=status.HTTP_200_OK,
         )

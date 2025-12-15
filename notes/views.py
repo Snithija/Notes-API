@@ -15,13 +15,14 @@ class NoteListCreateAPIView(APIView):
     def get(self, request):
         notes = Note.objects.filter(user=request.user).order_by("-created_at")
         serializer = NoteSerializer(notes, many=True)
+
         return Response(
             {
                 "message": "Your notes",
                 "count": notes.count(),
-                "notes": serializer.data
+                "notes": serializer.data,
             },
-            status=status.HTTP_200_OK
+            status=status.HTTP_200_OK,
         )
 
     def post(self, request):
@@ -29,18 +30,19 @@ class NoteListCreateAPIView(APIView):
         if serializer.is_valid():
             note = serializer.save(user=request.user)
 
+            # ASYNC EMAIL
             send_note_email.delay(
                 request.user.email,
                 note.title,
-                "Created"
+                "Created",
             )
 
             return Response(
                 {
                     "message": "Note created successfully",
-                    "note": serializer.data
+                    "note": serializer.data,
                 },
-                status=status.HTTP_201_CREATED
+                status=status.HTTP_201_CREATED,
             )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -55,7 +57,14 @@ class NoteDetailAPIView(APIView):
     def get(self, request, pk):
         note = self.get_object(pk, request.user)
         serializer = NoteSerializer(note)
-        return Response({"note": serializer.data})
+
+        return Response(
+            {
+                "message": "Note retrieved successfully",
+                "note": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
     def put(self, request, pk):
         note = self.get_object(pk, request.user)
@@ -64,14 +73,19 @@ class NoteDetailAPIView(APIView):
         if serializer.is_valid():
             serializer.save()
 
+            # ASYNC EMAIL
             send_note_email.delay(
                 request.user.email,
                 note.title,
-                "Updated"
+                "Updated",
             )
 
             return Response(
-                {"message": "Note updated", "note": serializer.data}
+                {
+                    "message": "Note updated successfully",
+                    "note": serializer.data,
+                },
+                status=status.HTTP_200_OK,
             )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -81,13 +95,14 @@ class NoteDetailAPIView(APIView):
         title = note.title
         note.delete()
 
+        # ASYNC EMAIL
         send_note_email.delay(
             request.user.email,
             title,
-            "Deleted"
+            "Deleted",
         )
 
         return Response(
-            {"message": "Note deleted"},
-            status=status.HTTP_204_NO_CONTENT
+            {"message": "Note deleted successfully"},
+            status=status.HTTP_204_NO_CONTENT,
         )
