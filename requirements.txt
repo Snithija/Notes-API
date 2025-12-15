@@ -3,3 +3,6 @@ djangorestframework
 djangorestframework-simplejwt
 python-dotenv
 gunicorn
+celery
+redis
+django-celery-results

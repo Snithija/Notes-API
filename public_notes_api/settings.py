@@ -10,7 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -45,6 +47,8 @@ INSTALLED_APPS = [
     # Local apps
     "accounts",
     "notes",
+
+    "django_celery_results",
     
 ]
 
@@ -155,3 +159,9 @@ EMAIL_HOST_USER = 'snithijaraavi25@gmail.com'
 EMAIL_HOST_PASSWORD = 'zrrk yuqb pray quhs'
 DEFAULT_FROM_EMAIL = 'snithijaraavi25@gmail.com'
 
+CELERY_BROKER_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+
+CELERY_RESULT_BACKEND = "django-db"
